@@ -16,9 +16,9 @@ CLEAN << 'tmp/integration_min.js'
 
 file 'out.html': %w[tmp/integration_min.js frame.html] do |t|
     # INSTALL: npm install -g inline-scripts
-    sh 'inline-script-tags', t.prerequisites[1], t.name
+    sh 'inline-script-tags', t.prerequisites[1], ("tmp/" + t.name)
 end
-CLOBBER << 'out.html'
+CLOBBER << 'tmp/out.html'
 
 task compile: 'tmp/integration.js'
 task minify: 'tmp/integration_min.js'
