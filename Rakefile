@@ -10,7 +10,7 @@ CLEAN << 'tmp/integration.js'
 
 file 'tmp/integration_min.js': %w[tmp/integration.js] do |t|
     # INSTALL: npm install -g terser
-    sh 'terser', t.prerequisites[0], '-c', '-o', t.name
+    sh 'terser', t.prerequisites[0], '-c', '-m', '-o', t.name
 end
 CLEAN << 'tmp/integration_min.js'
 
