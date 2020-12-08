@@ -13,9 +13,6 @@ interface AlertifyJSStatic {
 
 declare var alertify: AlertifyJSStatic;
 
-// STATIC INFO
-const phone_number = "1 (844) 587-6937";
-
 // Utility:
 class MyUtil {
   public static promiseTimeout(ms: number, promise: Promise<any>): Promise<any> {
@@ -213,7 +210,7 @@ async function addToCartARI(params_str: string): Promise<any> {
   } catch (err) {
     let err_msg = "We couldn't add your item to the cart because: ";
     err_msg += err.message + "\n";
-    err_msg += "We're sorry for the inconvenience, try calling us at " + phone_number + ".";
+    err_msg += "We're sorry for the inconvenience, try calling us at 1 (844) 587-6937.";
     alertify.alert("Something went wrong!", err_msg);
     console.error(err_msg);
   }
