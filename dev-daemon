@@ -1,0 +1,7 @@
+#!/usr/bin/env fish
+#
+# Script to run with entr:
+# fd | entr -cp ./dev-daemon
+
+# build project and pipe unminified js into clipboard
+rake build && cat tmp/integration.js | pbcopy
