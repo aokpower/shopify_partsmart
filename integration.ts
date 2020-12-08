@@ -190,28 +190,6 @@ class ARIParams {
   }
 }
 
-class MyPage {
-  public static async updateCartCount(): Promise<void> {
-    return BCCart.use().then(cart => MyPage.setCartCount(cart.item_count));
-  }
-
-  private static async setCartCount(n: number): Promise<void> {
-    try {
-      const el = document.getElementById("cart-item-count");
-      if (el === null) throw MyPage.cartNotFoundError();
-      el.textContent = String(n);
-    } catch (err) {
-      const msg = "Cart count couldn't be updated because: " + err.message + ".";
-      alertify.error(msg);
-      console.error(msg);
-    }
-  }
-
-  private static cartNotFoundError(): Error {
-    return new Error("Can't find cart element");
-  }
-}
-
 // ARI PartSmart add to cart Callback
 /* Callback only works if addToCartARI is in traditional
    javascript "function _name_() ..." syntax */
@@ -229,7 +207,6 @@ async function addToCartARI(params_str: string): Promise<any> {
     // Add to cart
     const cart = await BCCart.use();
     await cart.addItems((result.val!), params.quantity);
-    MyPage.updateCartCount();
     const msg = "Successfully added " + params.sku + " to cart.";
     console.log(msg);
     alertify.success(msg);
@@ -241,5 +218,3 @@ async function addToCartARI(params_str: string): Promise<any> {
     console.error(err_msg);
   }
 }
-
-MyPage.updateCartCount();
