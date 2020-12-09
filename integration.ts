@@ -39,8 +39,38 @@ class MyUtil {
 interface StringyObj { [key: string]: string }
 
 // Shopify
-class Shopify {
+
+interface Variant {
+  id: number;
+  quantity: number;
 }
+
+class MyShopify {
+  public async add_to_cart(item: Variant): Promise<Response> {
+    // NOTE: This assumes whatever items is a valid payload.
+    // This isn't necessarily the case if interfaces are open types, e.g.
+    // if you have an interface Foo with field bar: bool, are Foos all objects
+    // with only bar: bool (closed), or any object containing *only* bar: bool.
+    // (open).
+    // TODO: research this problem
+    const payload = JSON.stringify({ "items": [item] });
+    return await fetch('/cart/add.js', {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: payload
+    });
+  }
+}
+
+// test code
+let shop = new MyShopify();
+let p = shop.add_to_cart({ id: 37542794723528, quantity: 1})
+p.then(r => {
+  console.info(r.json());
+}).catch((err) => {
+  console.error(err);
+})
 
 // bare bones result type to avoid ext. dependency
 interface Result<T> {
