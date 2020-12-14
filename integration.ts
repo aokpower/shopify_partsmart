@@ -46,7 +46,7 @@ interface Variant {
 }
 
 class MyShopify {
-  public async add_to_cart(item: Variant): Promise<Response> {
+  public async add_to_cart(item: Variant): Promise<JSON> {
     // NOTE: This assumes whatever items is a valid payload.
     // This isn't necessarily the case if interfaces are open types, e.g.
     // if you have an interface Foo with field bar: bool, are Foos all objects
@@ -59,7 +59,7 @@ class MyShopify {
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: payload
-    });
+    }).then(res => res.json());
   }
 }
 
