@@ -45,8 +45,42 @@ interface Variant {
   quantity: number;
 }
 
+interface HasItemCount {
+  item_count: number;
+}
+
+enum ItemStatus {
+  Added,
+  Unprocessable,
+}
+
+interface ItemReq {
+  status: ItemStatus
+  description?: string
+}
+
 class MyShopify {
-  public async add_to_cart(item: Variant): Promise<JSON> {
+  private set_cart_count(item_count: string | number): void {
+
+    const count_node: HTMLElement | null = document.querySelector("#CartCount>span")
+    if (count_node === null) throw new Error("Couldn't find html node for cart count");
+
+    count_node.innerText = String(item_count)
+  }
+
+  public async cart(): Promise<HasItemCount> {
+    const resp = await fetch('/cart.js');
+    MyUtil.throwIfResNotOk(resp);
+    return await resp.json();
+  }
+
+  public async update_cart_count(): Promise<number> { 
+    const item_count: number = await this.cart().then(c => c.item_count);
+    this.set_cart_count(item_count);
+    return item_count;
+  }
+
+  public async add_to_cart(item: Variant): Promise<ItemReq> {
     // NOTE: This assumes whatever items is a valid payload.
     // This isn't necessarily the case if interfaces are open types, e.g.
     // if you have an interface Foo with field bar: bool, are Foos all objects
@@ -54,23 +88,24 @@ class MyShopify {
     // (open).
     // TODO: research this problem
     const payload = JSON.stringify({ "items": [item] });
-    return await fetch('/cart/add.js', {
+    const resp = await fetch('/cart/add.js', {
       method: "POST",
       credentials: "same-origin",
       headers: { "Content-Type": "application/json" },
       body: payload
-    }).then(res => res.json());
+    });
+    const json = await resp.json();
+
+    switch (resp.status) {
+      case 200: return { status: ItemStatus.Added }
+      case 422: return { status: ItemStatus.Unprocessable, description: json.description }
+      default: {
+        console.error(`Unrecognized response code when adding to cart: ${resp.status}`, resp);
+        throw new Error(json.description);
+      }
+    }
   }
 }
-
-// test code
-let shop = new MyShopify();
-let p = shop.add_to_cart({ id: 37542794723528, quantity: 1})
-p.then(r => {
-  console.info(r.json());
-}).catch((err) => {
-  console.error(err);
-})
 
 // bare bones result type to avoid ext. dependency
 interface Result<T> {
@@ -79,7 +114,7 @@ interface Result<T> {
 }
 
 class Lookup {
-   public static async idOfSku(ari_sku: string): Promise<Result<string>> {
+  public static async idOfSku(ari_sku: string): Promise<Result<string>> {
     const endpoint: string = "https://idlookup.aokpower.com/check/";
     const response = await fetch(endpoint+String(ari_sku));
     if (!response.ok) throw this.serviceError();
@@ -123,26 +158,34 @@ class ARIParams {
   }
 }
 
-// ARI PartSmart add to cart Callback
-/* Callback only works if addToCartARI is in traditional
-   javascript "function _name_() ..." syntax */
+/* Callback only works if addToCartARI is in "function _name_() ..." syntax */
 async function addToCartARI(params_str: string): Promise<any> {
   try {
     const params = new ARIParams(params_str);
-    console.log("Attempting to add product " + params.sku + " to cart.");
 
     // lookup sku using id_lookup service...
-    const result = await Lookup.idOfSku(params.sku);
+    const id_res = await Lookup.idOfSku(params.sku);
     console.log("looking up part " + params.sku + "...");
-    if (!result.exists) throw Lookup.partNotAvailError(params.sku);
-    console.log("Found " + params.sku + ", id = " + (result.val!));
+    if (!id_res.exists) throw Lookup.partNotAvailError(params.sku);
+    console.log("Found " + params.sku + ", id = " + (id_res.val!));
+    const id: number = Number(id_res.val!)
 
     // Add to cart
-    const cart = await BCCart.use();
-    await cart.addItems((result.val!), params.quantity);
-    const msg = "Successfully added " + params.sku + " to cart.";
-    console.log(msg);
-    alertify.success(msg);
+    const shop = new MyShopify();
+
+    const itemreq = await shop.add_to_cart({ id: id, quantity: params.quantity })
+    switch (itemreq.status) {
+      case ItemStatus.Added: {
+        const msg = "Successfully added " + params.sku + " to cart.";
+        console.log(msg);
+        alertify.success(msg);
+        break;
+      }
+      case ItemStatus.Unprocessable: {
+        alertify.alert("Couldn't add item to cart", itemreq.description!)
+        break;
+      }
+    }
   } catch (err) {
     let err_msg = "We couldn't add your item to the cart because: ";
     err_msg += err.message + "\n";
