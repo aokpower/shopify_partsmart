@@ -4,4 +4,4 @@
 # fd | entr -cp ./dev-daemon
 
 # build project and pipe unminified js into clipboard
-rake build && cat tmp/integration.js | pbcopy
+rake tmp/integration.js ; and cat tmp/integration.js | pbcopy; and notify 'Build successful; Copied to clipboard'; or notify 'Build failed'
