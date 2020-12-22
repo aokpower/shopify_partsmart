@@ -60,8 +60,7 @@ interface ItemReq {
 }
 
 class MyShopify {
-  private set_cart_count(item_count: string | number): void {
-
+  private set_cart_count(item_count: number): void {
     const count_node: HTMLElement | null = document.querySelector("#CartCount>span")
     if (count_node === null) throw new Error("Couldn't find html node for cart count");
 
