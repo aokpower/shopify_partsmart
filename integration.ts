@@ -74,9 +74,9 @@ class MyShopify {
   }
 
   public async update_cart_count(): Promise<number> { 
-    const item_count: number = await this.cart().then(c => c.item_count);
-    this.set_cart_count(item_count);
-    return item_count;
+    const cart = await this.cart()
+    this.set_cart_count(cart.item_count);
+    return cart.item_count;
   }
 
   public async add_to_cart(item: Variant): Promise<ItemReq> {
