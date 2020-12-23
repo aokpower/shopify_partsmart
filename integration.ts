@@ -2,9 +2,9 @@
 // TODO: Split into modules
 
 // Note: Relies on AlertifyJS library being required outside of js context
-// i.e. in the final html output using <script src="..."
+//  See: frame.html
+
 // AlertifyJS type declarations
-// TODO: fill in optional parameter type dec.s for alertify functions
 interface AlertifyJSStatic {
   success(msg: string): void;
   error(msg: string): void;
@@ -31,7 +31,7 @@ class MyUtil {
     return response;
   }
 
-  public static babyyodas() {
+  public static babyyodas(): void {
     alertify.alert("send me baby yoda pictures pls", "plz");
   }
 }
@@ -80,7 +80,7 @@ class MyShopify {
   }
 
   public async add_to_cart(item: Variant): Promise<ItemReq> {
-    // NOTE: This assumes whatever items is a valid payload.
+    // NOTE: This assumes whatever item is a valid payload.
     // This isn't necessarily the case if interfaces are open types, e.g.
     // if you have an interface Foo with field bar: bool, are Foos all objects
     // with only bar: bool (closed), or any object containing *only* bar: bool.
@@ -157,6 +157,7 @@ class ARIParams {
   }
 }
 
+// TODO: rewrite addToCartARI as non-async function (Having a return type of Promise<T> is unnecessary
 /* Callback only works if addToCartARI is in "function _name_() ..." syntax */
 async function addToCartARI(params_str: string): Promise<any> {
   try {
