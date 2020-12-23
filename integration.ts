@@ -182,14 +182,14 @@ async function addToCartARI(params_str: string): Promise<any> {
         break;
       }
       case ItemStatus.Unprocessable: {
-        alertify.alert("Couldn't add item to cart", itemreq.description!)
+        alertify.alert("Can't add item to cart: This item is out of stock", itemreq.description!)
         break;
       }
     }
   } catch (err) {
-    let err_msg = "We couldn't add your item to the cart because: ";
+    let err_msg = "We're sorry; Your item couldn't be added to the cart:" + "\n";
     err_msg += err.message + "\n";
-    err_msg += "We're sorry for the inconvenience, try calling us at 1 (844) 587-6937.";
+    err_msg += "Try calling us at 1 (844) 587-6937.";
     alertify.alert("Something went wrong!", err_msg);
     console.error(err_msg);
   }
