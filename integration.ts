@@ -185,6 +185,10 @@ async function addToCartARI(params_str: string): Promise<any> {
         alertify.alert("Can't add item to cart: This item is out of stock", itemreq.description!)
         break;
       }
+      default: { // Should be unreachable if all members of ItemStatus have cases
+        console.error(`Add to cart request has unknown ItemStatus: ${itemreq.status}`);
+        throw new Error('Unhandled cart return status detected.')
+      }
     }
   } catch (err) {
     let err_msg = "We're sorry; Your item couldn't be added to the cart:" + "\n";
