@@ -54,7 +54,7 @@ enum ItemStatus {
   Unprocessable,
 }
 
-interface ItemReq {
+interface ItemResp {
   status: ItemStatus
   description?: string
 }
@@ -79,7 +79,7 @@ class MyShopify {
     return cart.item_count;
   }
 
-  public async add_to_cart(item: Variant): Promise<ItemReq> {
+  public async add_to_cart(item: Variant): Promise<ItemResp> {
     // NOTE: This assumes whatever item is a valid payload.
     // This isn't necessarily the case if interfaces are open types, e.g.
     // if you have an interface Foo with field bar: bool, are Foos all objects
@@ -157,23 +157,24 @@ class ARIParams {
   }
 }
 
-// TODO: rewrite addToCartARI as non-async function (Having a return type of Promise<T> is unnecessary
 /* Callback only works if addToCartARI is in "function _name_() ..." syntax */
-async function addToCartARI(params_str: string): Promise<any> {
-  try {
-    const params = new ARIParams(params_str);
+function addToCartARI(params_str: string): void {
+  const params = new ARIParams(params_str);
+  const shop = new MyShopify();
 
-    // lookup sku using id_lookup service...
-    const id_res = await Lookup.idOfSku(params.sku);
+  // lookup sku using id_lookup service...
+  Lookup.idOfSku(params.sku).then(lookup_resp => {
+    // Look up Shopify product id of sku
     console.log("looking up part " + params.sku + "...");
-    if (!id_res.exists) throw Lookup.partNotAvailError(params.sku);
-    console.log("Found " + params.sku + ", id = " + (id_res.val!));
-    const id: number = Number(id_res.val!)
+    if (!lookup_resp.exists) throw Lookup.partNotAvailError(params.sku);
+    console.log("Found " + params.sku + ", id = " + (lookup_resp.val!));
 
-    // Add to cart
-    const shop = new MyShopify();
-
-    const itemreq = await shop.add_to_cart({ id: id, quantity: params.quantity })
+    return Number(lookup_resp.val!);
+  }).then(id => {
+    // send add to cart request
+    return shop.add_to_cart({ id: id, quantity: params.quantity })
+  }).then(itemreq => {
+    // handle add to cart response
     switch (itemreq.status) {
       case ItemStatus.Added: {
         const msg = "Successfully added " + params.sku + " to cart.";
@@ -190,11 +191,11 @@ async function addToCartARI(params_str: string): Promise<any> {
         throw new Error('Unhandled cart return status detected.')
       }
     }
-  } catch (err) {
+  }).catch(err => {
     let err_msg = "We're sorry; Your item couldn't be added to the cart:" + "\n";
     err_msg += err.message + "\n";
     err_msg += "Try calling us at 1 (844) 587-6937.";
     alertify.alert("Something went wrong!", err_msg);
     console.error(err_msg);
-  }
+  });
 }
