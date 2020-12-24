@@ -191,6 +191,7 @@ function addToCartARI(params_str: string): void {
         throw new Error('Unhandled cart return status detected.')
       }
     }
+    shop.update_cart_count();
   }).catch(err => {
     let err_msg = "We're sorry; Your item couldn't be added to the cart:" + "\n";
     err_msg += err.message + "\n";
