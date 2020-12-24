@@ -40,6 +40,9 @@ interface StringyObj { [key: string]: string }
 
 // Shopify
 
+// NOTE: This interface does *not* handle variants that have root products or options!!!
+// Shouldn't be to hard, but at the moment that is outside the scope of our needs.
+// SEE: https://shopify.dev/docs/themes/ajax-api/reference/cart
 interface Variant {
   id: number;
   quantity: number;
@@ -80,12 +83,6 @@ class MyShopify {
   }
 
   public async add_to_cart(item: Variant): Promise<ItemResp> {
-    // NOTE: This assumes whatever item is a valid payload.
-    // This isn't necessarily the case if interfaces are open types, e.g.
-    // if you have an interface Foo with field bar: bool, are Foos all objects
-    // with only bar: bool (closed), or any object containing *only* bar: bool.
-    // (open).
-    // TODO: research this problem
     const payload = JSON.stringify({ "items": [item] });
     const resp = await fetch('/cart/add.js', {
       method: "POST",
